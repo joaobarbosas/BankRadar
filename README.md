@@ -132,7 +132,7 @@ Run the unit tests from the repository root:
 dotnet test tests/BankRadar.Tests/BankRadar.Tests.csproj
 ```
 
-The tests currently exercise the extracted rate-alert threshold policy. They do not invoke the external Central Bank website or SMTP.
+The 16 test cases exercise the rate-alert threshold policy and defensive rate parsing (decimal separators, percent suffixes, unavailable/malformed/negative values and overflow). They do not invoke the external Central Bank website, MySQL or SMTP.
 
 ## Current limitations
 
@@ -146,7 +146,7 @@ The tests currently exercise the extracted rate-alert threshold policy. They do 
 
 ## Potential next improvements
 
-- Add tests for parsing, database and notification integrations
+- Add database and notification integration tests
 - Introduce error handling, structured logging, and retry policies
 - Replace the fixed date with a configurable collection period
 - Expand CI coverage to include integration tests
