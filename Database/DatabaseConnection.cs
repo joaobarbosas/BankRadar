@@ -1,15 +1,15 @@
-﻿using MySql.Data.MySqlClient;
+using MySql.Data.MySqlClient;
 
-namespace BankRadar.Database
+namespace BankRadar.Database;
+
+public class DatabaseConnection
 {
-    public class DatabaseConnection
+    public MySqlConnection GetConnection()
     {
-        private const string ConnectionString =
-            "Server=localhost;Database=bankradar;Uid=root;Pwd=SUA_SENHA_AQUI;";
+        var connectionString = Environment.GetEnvironmentVariable("BANKRADAR_DB_CONNECTION");
+        if (string.IsNullOrWhiteSpace(connectionString))
+            throw new InvalidOperationException("Set BANKRADAR_DB_CONNECTION before running BankRadar.");
 
-        public MySqlConnection GetConnection()
-        {
-            return new MySqlConnection(ConnectionString);
-        }
+        return new MySqlConnection(connectionString);
     }
 }
