@@ -24,7 +24,7 @@ foreach (var simulacao in simulacoes)
 Console.WriteLine($"✅ {simulacoes.Count} taxas coletadas e salvas no banco!");
 
 // Alerta: bancos com taxa mensal abaixo de 2%
-var taxasBaixas = simulacoes.Where(s => s.TaxaMensal < 2).ToList();
+var taxasBaixas = RateAlertPolicy.FindBelowThreshold(simulacoes);
 
 if (taxasBaixas.Any())
 {
