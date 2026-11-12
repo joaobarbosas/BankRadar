@@ -120,7 +120,7 @@ The scraper currently launches Chromium with `Headless = false`, so a desktop/br
 - The current workflow inserts collected rows without deduplication.
 - The SMTP threshold is hardcoded at **2% monthly**.
 - Credentials are configured in source files as placeholders, rather than through environment variables.
-- There is **no automated test suite or CI pipeline included** in this repository.
+- A GitHub Actions workflow restores and builds the .NET project on pushes and pull requests. **There is no automated test suite yet**; the CI build has not been verified as passing.
 - The application has not been verified here against the live Central Bank website, so successful collection is not guaranteed.
 
 ## Potential next improvements
@@ -129,7 +129,7 @@ The scraper currently launches Chromium with `Headless = false`, so a desktop/br
 - Add unit tests for parsing, filtering, and notification rules
 - Introduce error handling, structured logging, and retry policies
 - Replace the fixed date with a configurable collection period
-- Add CI for build and test verification
+- Extend CI to run automated tests once a test suite is added
 - Add database migrations and duplicate detection
 
 ## Author
