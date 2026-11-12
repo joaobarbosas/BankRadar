@@ -1,5 +1,6 @@
-﻿using Microsoft.Playwright;
+using Microsoft.Playwright;
 using BankRadar.Models;
+using BankRadar.Services;
 
 namespace BankRadar.Scrapers
 {
@@ -34,11 +35,16 @@ namespace BankRadar.Scrapers
                 var taxaMensalStr = await colunas[3].InnerTextAsync();
                 var taxaAnualStr = await colunas[4].InnerTextAsync();
 
+                // Never treat unavailable or malformed rates as zero-rate offers.
+                if (!RateParser.TryParse(taxaMensalStr, out var mensal) ||
+                    !RateParser.TryParse(taxaAnualStr, out var anual))
+                    continue;
+
                 simulacoes.Add(new Simulacao
                 {
                     Banco = banco.Trim(),
-                    TaxaMensal = decimal.Parse(taxaMensalStr.Trim().Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture),
-                    TaxaAnual = decimal.Parse(taxaAnualStr.Trim().Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture),
+                    TaxaMensal = mensal,
+                    TaxaAnual = anual,
                     DataColeta = DateTime.Now
                 });
             }
