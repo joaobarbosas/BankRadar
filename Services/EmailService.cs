@@ -1,38 +1,42 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Mail;
 using BankRadar.Models;
 
-namespace BankRadar.Services
+namespace BankRadar.Services;
+
+public class EmailService
 {
-    public class EmailService
+    public void EnviarAlerta(List<Simulacao> taxasBaixas)
     {
-        private const string EmailRemetente = "SEU_EMAIL_AQUI@gmail.com";
-        private const string SenhaApp = "SUA_SENHA_AQUI";
-        private const string EmailDestinatario = "EMAIL_DESTINO_AQUI@gmail.com";
+        var sender = GetRequired("BANKRADAR_SMTP_SENDER");
+        var password = GetRequired("BANKRADAR_SMTP_PASSWORD");
+        var recipient = GetRequired("BANKRADAR_SMTP_RECIPIENT");
+        var host = Environment.GetEnvironmentVariable("BANKRADAR_SMTP_HOST") ?? "smtp.gmail.com";
+        var port = int.TryParse(Environment.GetEnvironmentVariable("BANKRADAR_SMTP_PORT"), out var configuredPort)
+            ? configuredPort : 587;
 
-        public void EnviarAlerta(List<Simulacao> taxasBaixas)
+        using var smtp = new SmtpClient(host)
         {
-            var smtp = new SmtpClient("smtp.gmail.com")
-            {
-                Port = 587,
-                Credentials = new NetworkCredential(EmailRemetente, SenhaApp),
-                EnableSsl = true
-            };
+            Port = port,
+            Credentials = new NetworkCredential(sender, password),
+            EnableSsl = true
+        };
 
-            var corpo = "🚨 BankRadar - Taxas abaixo do limite!\n\n";
-            foreach (var s in taxasBaixas)
-            {
-                corpo += $"{s.Banco} | {s.TaxaMensal}% a.m. | {s.TaxaAnual}% a.a.\n";
-            }
+        var body = "BankRadar - Rates below threshold!\n\n" +
+            string.Join("\n", taxasBaixas.Select(s => $"{s.Banco} | {s.TaxaMensal}% monthly | {s.TaxaAnual}% yearly"));
 
-            var mensagem = new MailMessage(EmailRemetente, EmailDestinatario)
-            {
-                Subject = "🤖 BankRadar - Alerta de Taxa Baixa!",
-                Body = corpo
-            };
+        using var message = new MailMessage(sender, recipient)
+        {
+            Subject = "BankRadar - Low rate alert",
+            Body = body
+        };
 
-            smtp.Send(mensagem);
-            Console.WriteLine("📧 E-mail de alerta enviado!");
-        }
+        smtp.Send(message);
+        Console.WriteLine("Email alert sent.");
     }
+
+    private static string GetRequired(string name) =>
+        Environment.GetEnvironmentVariable(name) is { Length: > 0 } value
+            ? value
+            : throw new InvalidOperationException($"Set {name} before sending email alerts.");
 }
