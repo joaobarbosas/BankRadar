@@ -91,11 +91,22 @@ CREATE TABLE IF NOT EXISTS simulacoes (
 
 This schema is provided as a compatible setup example; it is not an existing migration in the repository.
 
-### 3. Configure local credentials
+### 3. Configure environment variables
 
-**Important:** The current demonstration implementation reads its MySQL connection string from `Database/DatabaseConnection.cs` and SMTP settings from `Services/EmailService.cs`. Replace the placeholder values **locally**, and **do not commit real credentials**.
+The application reads credentials from environment variables. **Never commit real credentials.**
 
-For a production-quality improvement, these settings should be moved to environment variables or a secrets manager. The repository does **not** currently implement that configuration pattern.
+Example for PowerShell (replace placeholders locally):
+
+```powershell
+$env:BANKRADAR_DB_CONNECTION = "Server=localhost;Database=bankradar;Uid=YOUR_USER;Pwd=YOUR_PASSWORD;"
+$env:BANKRADAR_SMTP_SENDER = "sender@example.com"
+$env:BANKRADAR_SMTP_PASSWORD = "YOUR_APP_PASSWORD"
+$env:BANKRADAR_SMTP_RECIPIENT = "recipient@example.com"
+# Optional: BANKRADAR_SMTP_HOST (defaults to smtp.gmail.com)
+# Optional: BANKRADAR_SMTP_PORT (defaults to 587)
+```
+
+SMTP variables are only required when the rate threshold triggers an email. The MySQL connection variable is always required.
 
 ### 4. Install Playwright's Chromium browser
 
@@ -113,23 +124,32 @@ dotnet run
 
 The scraper currently launches Chromium with `Headless = false`, so a desktop/browser environment is required unless the source is changed.
 
+## Tests
+
+Run the unit tests from the repository root:
+
+```bash
+dotnet test tests/BankRadar.Tests/BankRadar.Tests.csproj
+```
+
+The tests currently exercise the extracted rate-alert threshold policy. They do not invoke the external Central Bank website or SMTP.
+
 ## Current limitations
 
 - The scraper's Central Bank URL includes a **fixed historical date**; it is not automatically updated to today's date.
 - The scraper depends on specific HTML selectors, which may break if the source website changes.
 - The current workflow inserts collected rows without deduplication.
 - The SMTP threshold is hardcoded at **2% monthly**.
-- Credentials are configured in source files as placeholders, rather than through environment variables.
-- A GitHub Actions workflow restores and builds the .NET project on pushes and pull requests. **There is no automated test suite yet**; the CI build has not been verified as passing.
+- Credentials are loaded from environment variables; local values must be provided before running.
+- A GitHub Actions workflow restores, builds and runs the xUnit test project on pushes and pull requests.
 - The application has not been verified here against the live Central Bank website, so successful collection is not guaranteed.
 
 ## Potential next improvements
 
-- Externalize database and SMTP configuration
-- Add unit tests for parsing, filtering, and notification rules
+- Add tests for parsing, database and notification integrations
 - Introduce error handling, structured logging, and retry policies
 - Replace the fixed date with a configurable collection period
-- Extend CI to run automated tests once a test suite is added
+- Expand CI coverage to include integration tests
 - Add database migrations and duplicate detection
 
 ## Author
